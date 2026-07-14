@@ -1,0 +1,12 @@
+{:itonami.blueprint/id "cloud-itonami-0113"
+ :itonami.blueprint/name "Vegetable and Root-Crop Growing Operations Coordination"
+ :itonami.blueprint/isic-rev5 "0113"
+ :itonami.blueprint/domain :agriculture/vegetable-growing
+ :itonami.blueprint/license "AGPL-3.0-or-later"
+ :itonami.blueprint/social-impact [:food-security :rural-employment :environmental-stewardship]
+ :itonami.blueprint/governor :field-operations-governor
+ :itonami.blueprint/robotics true
+ :itonami.blueprint/required-technologies [:robotics :identity :forms :audit-ledger]
+ :itonami.blueprint/optional-technologies [:telemetry :optimization :dmn :bpmn]
+ :itonami.blueprint/status :public-oss
+ :itonami.blueprint/maturity :implemented}
