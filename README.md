@@ -12,15 +12,33 @@ operational records and maintains full transparency over decisions.
 **Maturity: `:implemented`.** `src/vegops/` implements the
 `VegOpsAdvisor` (`vegops.advisor`) and the independent
 `FieldOperationsGovernor` (`vegops.governor`), composed by
-`vegops.operation` following the itonami actor pattern (ADR-2607011000):
-`advise -> govern -> phase-gate -> commit | escalate | hold`. 30 tests /
-99 assertions green (`clojure -M:test`).
+`vegops.operation` into a REAL, compiled
+[`kotoba-lang/langgraph`](https://github.com/kotoba-lang/langgraph)
+`StateGraph` (per ADR-2607011000):
 
-`vegops.operation` is a synchronous stub of this flow (see its
-docstring) — production wiring into a `langgraph-clj` StateGraph with
-`interrupt-before`/checkpoint-based human-in-the-loop resume for escalated
-operations is deferred, mirroring `cloud-itonami-isic-0111`'s own
-`cerealops.operation`.
+```text
+:intake -> :advise -> :govern -> :decide -+-> :commit                        (:hard? false, :escalate? false)
+                                           +-> :request-approval -> :commit    (:escalate? true, interrupt-before)
+                                           +-> :hold                          (:hard? true)
+```
+
+An earlier version of this repo's `operation/build` returned a bare
+Clojure closure over the synchronous flow and never touched
+`kotoba-lang/langgraph` at all (its own docstring called it a "Stub
+for building a langgraph-clj StateGraph"), `deps.edn` had an empty
+top-level `:deps {}` with langgraph only reachable via `:dev`
+override-deps (nothing to actually override), and no audit ledger
+existed anywhere in the repo. All three gaps are now closed:
+`interrupt-before #{:request-approval}` + an in-memory checkpointer
+give escalated proposals a GENUINE human-in-the-loop pause/resume, and
+BOTH `:commit` and `:hold` durably append to the real audit ledger
+(`vegops.store/append-ledger!`, `MemStore` + a `DatomicStore` via
+[`kotoba-lang/langchain-store`](https://github.com/kotoba-lang/langchain-store)).
+36 tests / 133 assertions green (`clojure -M:dev:test`), including a
+new `test/vegops/operation_test.cljc` that runs the REAL compiled
+graph end to end through commit / hard-hold / escalate→approve /
+escalate→reject, and a `clojure -M:dev:run` demo runner that produces
+4 distinct real ledger entries.
 
 ## What this does NOT do
 
@@ -113,12 +131,20 @@ Mirrors `cloud-itonami-isic-0111` (`cerealops.*`) module-for-module:
 
 - `vegops.facts` — reference data: supply-category cost thresholds, vegetable/root/tuber crops
 - `vegops.registry` — pure independent verification functions (cost/acreage/confidence)
-- `vegops.store` — `Store` protocol + in-memory `MemStore` (field registration lookup)
+- `vegops.store` — `Store` protocol + `MemStore` + `DatomicStore` (via
+  [`kotoba-lang/langchain-store`](https://github.com/kotoba-lang/langchain-store),
+  no hand-rolled EDN-blob codec): field registration lookup + the
+  append-only audit ledger (`ledger`/`append-ledger!`). Both backends
+  pass the same contract (`test/vegops/store_contract_test.cljc`).
 - `vegops.advisor` — `Advisor` protocol + `MockAdvisor` (the sealed LLM/decision node)
 - `vegops.governor` — `FieldOperationsGovernor`: hard invariants + escalation gates
 - `vegops.phase` — 0→3 rollout phase gate
-- `vegops.operation` — composes advisor → governor → phase into one operation run
-- `vegops.sim` — demo runner (`clojure -M:run`)
+- `vegops.operation` — `build`: the REAL `langgraph.graph` StateGraph
+  wiring (`state-graph`/`add-node`/`add-edge`/`add-conditional-edges`/
+  `compile-graph`), advisor → governor → phase-gate → commit/hold, with
+  BOTH `:commit` and `:hold` durably appending to the real audit ledger
+- `vegops.sim` — demo runner (`clojure -M:run`) driving the REAL compiled
+  StateGraph via `langgraph.graph/run*`, including checkpointed interrupt/resume
 
 ## Capability layer
 
@@ -136,9 +162,9 @@ See [`docs/business-model.md`](docs/business-model.md) and
 ## Testing
 
 ```bash
-clojure -M:test   # run the test suite
-clojure -M:lint   # clj-kondo, 0 errors / 0 warnings
-clojure -M:run    # demo runner
+clojure -M:dev:test   # 36 tests / 133 assertions, green
+clojure -M:lint       # clj-kondo, 0 errors / 0 warnings
+clojure -M:dev:run     # demo runner, real compiled StateGraph end-to-end
 ```
 
 ## License

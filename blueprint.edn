@@ -9,4 +9,40 @@
  :itonami.blueprint/required-technologies [:robotics :identity :forms :audit-ledger]
  :itonami.blueprint/optional-technologies [:telemetry :optimization :dmn :bpmn]
  :itonami.blueprint/status :public-oss
- :itonami.blueprint/maturity :implemented}
+ :itonami.blueprint/maturity :implemented
+ :itonami.blueprint/implemented-slice
+ "VegOpsAdvisor ⊣ Field Operations Governor, langgraph-clj StateGraph
+ (langgraph.graph, vegops.operation/build), append-only audit ledger
+ (vegops.store/ledger + append-ledger!, MemStore and a DatomicStore
+ backed by langchain.db via langchain-store.core). Replaces a
+ previously deferred actor: `operation/build` returned a bare Clojure
+ closure over the synchronous `run-operation` flow and never touched
+ `kotoba-lang/langgraph` at all (its own docstring called it a \"Stub
+ for building a langgraph-clj StateGraph\"); `deps.edn` had an empty
+ top-level `:deps {}` with langgraph only reachable via `:dev`
+ override-deps (nothing to override); no audit ledger existed in the
+ repo at all. Now: a genuinely compiled StateGraph
+ (`:intake -> :advise -> :govern -> :decide -+-> :commit /
+ :request-approval -> :commit / :hold`) with `interrupt-before
+ #{:request-approval}` + in-memory checkpointer for real
+ human-in-the-loop resume, and BOTH `:commit` and `:hold` durably
+ append to the real audit ledger (`store/append-ledger!`) -- a
+ back-office OPERATIONS COORDINATION actor for vegetable/root-crop
+ field management (tomato/cucumber/cabbage/onion/carrot/potato/
+ sweet-potato/watermelon) -- not direct field-equipment operation
+ authority and not pesticide-application-decision authority. Four ops
+ (`:log-field-record` / `:schedule-field-operation` /
+ `:flag-crop-health-concern` / `:order-supplies`), all `:effect
+ :propose` only. Five HARD invariants (field-not-registered,
+ no-execution, equipment-or-pesticide-decision-blocked, op-not-allowed,
+ field-record-invalid) plus independent cost/acreage/confidence
+ verification (`vegops.registry`) elaborate this blueprint's Governor.
+ Crop-health-concern flagging ALWAYS escalates to a human
+ farmer/agronomist via the compiled graph's `:request-approval` node
+ (`interrupt-before`, checkpoint-based resume, proven by a new
+ `test/vegops/operation_test.cljc` exercising commit / hard-hold /
+ escalate-approve / escalate-reject through the REAL compiled graph
+ end to end, plus a `clojure -M:dev:run` demo runner producing 4
+ distinct real ledger entries). 36 tests / 133 assertions green
+ (`clojure -M:dev:test`), clj-kondo 0 errors / 0 warnings, demo
+ runnable end-to-end against both Store backends."}
