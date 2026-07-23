@@ -1,4 +1,4 @@
-{:itonami.blueprint/id "cloud-itonami-0113"
+{:itonami.blueprint/id "cloud-itonami-isic-0113"
  :itonami.blueprint/name "Vegetable and Root-Crop Growing Operations Coordination"
  :itonami.blueprint/isic-rev5 "0113"
  :itonami.blueprint/domain :agriculture/vegetable-growing
