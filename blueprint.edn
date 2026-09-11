@@ -42,7 +42,7 @@
  (`interrupt-before`, checkpoint-based resume, proven by a new
  `test/vegops/operation_test.cljk` exercising commit / hard-hold /
  escalate-approve / escalate-reject through the REAL compiled graph
- end to end, plus a `clojure -M:dev:run` demo runner producing 4
+ end to end, plus a `kbb -M:dev:run` demo runner producing 4
  distinct real ledger entries). 36 tests / 133 assertions green
- (`clojure -M:dev:test`), clj-kondo 0 errors / 0 warnings, demo
+ (`kbb -M:dev:test`), clj-kondo 0 errors / 0 warnings, demo
  runnable end-to-end against both Store backends."}

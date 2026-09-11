@@ -34,10 +34,10 @@ give escalated proposals a GENUINE human-in-the-loop pause/resume, and
 BOTH `:commit` and `:hold` durably append to the real audit ledger
 (`vegops.store/append-ledger!`, `MemStore` + a `DatomicStore` via
 [`kotoba-lang/langchain-store`](https://github.com/kotoba-lang/langchain-store)).
-36 tests / 133 assertions green (`clojure -M:dev:test`), including a
+36 tests / 133 assertions green (`kbb -M:dev:test`), including a
 new `test/vegops/operation_test.cljk` that runs the REAL compiled
 graph end to end through commit / hard-hold / escalate→approve /
-escalate→reject, and a `clojure -M:dev:run` demo runner that produces
+escalate→reject, and a `kbb -M:dev:run` demo runner that produces
 4 distinct real ledger entries.
 
 ## What this does NOT do
@@ -143,7 +143,7 @@ Mirrors `cloud-itonami-isic-0111` (`cerealops.*`) module-for-module:
   wiring (`state-graph`/`add-node`/`add-edge`/`add-conditional-edges`/
   `compile-graph`), advisor → governor → phase-gate → commit/hold, with
   BOTH `:commit` and `:hold` durably appending to the real audit ledger
-- `vegops.sim` — demo runner (`clojure -M:run`) driving the REAL compiled
+- `vegops.sim` — demo runner (`kbb -M:run`) driving the REAL compiled
   StateGraph via `langgraph.graph/run*`, including checkpointed interrupt/resume
 
 ## Capability layer
@@ -162,9 +162,9 @@ See [`docs/business-model.md`](docs/business-model.md) and
 ## Testing
 
 ```bash
-clojure -M:dev:test   # 36 tests / 133 assertions, green
-clojure -M:lint       # clj-kondo, 0 errors / 0 warnings
-clojure -M:dev:run     # demo runner, real compiled StateGraph end-to-end
+kbb -M:dev:test   # 36 tests / 133 assertions, green
+kbb -M:lint       # clj-kondo, 0 errors / 0 warnings
+kbb -M:dev:run     # demo runner, real compiled StateGraph end-to-end
 ```
 
 ## License
