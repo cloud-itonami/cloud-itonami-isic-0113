@@ -35,7 +35,7 @@ BOTH `:commit` and `:hold` durably append to the real audit ledger
 (`vegops.store/append-ledger!`, `MemStore` + a `DatomicStore` via
 [`kotoba-lang/langchain-store`](https://github.com/kotoba-lang/langchain-store)).
 36 tests / 133 assertions green (`clojure -M:dev:test`), including a
-new `test/vegops/operation_test.cljc` that runs the REAL compiled
+new `test/vegops/operation_test.cljk` that runs the REAL compiled
 graph end to end through commit / hard-hold / escalate→approve /
 escalate→reject, and a `clojure -M:dev:run` demo runner that produces
 4 distinct real ledger entries.
@@ -135,7 +135,7 @@ Mirrors `cloud-itonami-isic-0111` (`cerealops.*`) module-for-module:
   [`kotoba-lang/langchain-store`](https://github.com/kotoba-lang/langchain-store),
   no hand-rolled EDN-blob codec): field registration lookup + the
   append-only audit ledger (`ledger`/`append-ledger!`). Both backends
-  pass the same contract (`test/vegops/store_contract_test.cljc`).
+  pass the same contract (`test/vegops/store_contract_test.cljk`).
 - `vegops.advisor` — `Advisor` protocol + `MockAdvisor` (the sealed LLM/decision node)
 - `vegops.governor` — `FieldOperationsGovernor`: hard invariants + escalation gates
 - `vegops.phase` — 0→3 rollout phase gate
