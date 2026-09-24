@@ -1,0 +1,43 @@
+;; What this vertical's robot physically does, declared for
+;; kotoba.robotics.process (kotoba-lang/robotics). `kbb -M:dev:physics` runs it.
+;;
+;; README "Robotics premise": a field-management robot keeps field records,
+;; schedules field operations and handles supplies for a vegetable farm (ISIC
+;; 0113, growing of vegetables and melons, roots and tubers). Its physical
+;; work: carrying harvest crates down the greenhouse row, stacking crates onto
+;; a pallet, and forced-air pre-cooling of the harvested produce.
+;;
+;; Every number without a cited source is marked `estimate` in its :basis.
+;; Replacing an estimate with a sourced value is this bot's growth work.
+{:physics/schema "itonami.physical-ai.spec.v1"
+ :repo "cloud-itonami/cloud-itonami-isic-0113"
+ :cases
+ [{:id :harvest-crates-down-greenhouse-row
+   :kind :transport
+   :procedure "rail-and-floor trolley carries filled harvest crates down the greenhouse row to the packing area"
+   :params {:mass-kg 70.0 :distance-m 100.0 :v-max-mps 1.2 :a-max-mps2 0.5
+            :brake-decel-mps2 1.0 :drive-force-n 200.0 :crr 0.015
+            :cog-height-m 0.70 :support-half-length-m 0.30 :max-time-s 3600.0}
+   :sweep {:param :payload-kg :values [30.0 80.0 150.0 250.0 350.0]}
+   :quantity :cycle-time-s
+   :limit {:max 95.0 :basis "estimate: one row leg inside the pickers' crate-exchange interval"}
+   :boundary {:lo 10.0 :hi 800.0}}
+  {:id :crate-onto-pallet
+   :kind :manipulator
+   :procedure "arm lifts a full vegetable crate from the conveyor end onto the top layer of the pallet"
+   :params {:l1-m 0.55 :l2-m 0.45 :m1-kg 6.0 :m2-kg 4.0
+            :from [0.70 0.00] :to [0.35 0.80] :duration-s 2.5 :steps 500}
+   :sweep {:param :payload-kg :values [5.0 10.0 15.0 20.0 25.0]}
+   :quantity :peak-tau1-nm
+   :limit {:max 150.0 :basis "estimate: continuous shoulder torque of a 10-15 kg-class palletizing arm"}
+   :boundary {:lo 1.0 :hi 60.0}}
+  {:id :forced-air-precooling
+   :kind :thermal
+   :procedure "harvested broccoli heads are pre-cooled in a forced-air tunnel with 1 C air; the head centre temperature is judged"
+   :params {:thickness-m 0.05 :conductivity-w-mk 0.45 :density-kg-m3 900.0 :specific-heat-j-kgk 3900.0
+            :t0-c 25.0 :t-hot-c 1.0 :h-front-w-m2k 25.0 :t-back-ambient-c 25.0 :h-back-w-m2k 0.0
+            :threshold-c 99.0 :nodes 11}
+   :sweep {:param :duration-s :values [3600.0 7200.0 14400.0 28800.0 43200.0]}
+   :quantity :final-back-c
+   :limit {:max 4.0 :basis "estimate: seven-eighths cooling of 25 C produce toward 1 C air ends near 4 C"}
+   :boundary {:lo 1800.0 :hi 86400.0}}]}
